@@ -348,16 +348,24 @@ def caps_o(x: int, y: int, spacing: int):
     OLED12864_I2C.vline(x, y + 1, 5, 1)     # Left vertical line
     OLED12864_I2C.vline(x + 3, y + 1, 5, 1) # Right vertical line
     OLED12864_I2C.hline(x + 1, y + 6, 2, 1) # Bottom horizontal line
-    return 5 + spacing  # width of character
+    return 4 + spacing  # width of character
 
 def caps_s(x: int, y: int, spacing: int):
     OLED12864_I2C.hline(x + 1, y, 2, 1)     # Top horizontal line
-    OLED12864_I2C.pixel(x, y + 1, 1)        # Top left pixel
-    OLED12864_I2C.pixel(x, y + 2, 1)        # Left pixel
     OLED12864_I2C.hline(x + 1, y + 3, 2, 1) # Middle horizontal line
-    OLED12864_I2C.pixel(x + 3, y + 4, 1)    # Right pixel
-    OLED12864_I2C.pixel(x + 3, y + 5, 1)    # Bottom right pixel
     OLED12864_I2C.hline(x + 1, y + 6, 2, 1) # Bottom horizontal line
+    OLED12864_I2C.vline(x, y + 1, 2, 1)     # Top vertical line
+    OLED12864_I2C.vline(x + 3, y + 4, 2, 1) # Bottom vertical line
+    OLED12864_I2C.pixel(x + 3, y + 1, 1)    # Top right pixel
+    OLED12864_I2C.pixel(x, y + 5, 1)        # Bottom left pixel
+    return 4 + spacing  # width of character
+
+def caps_n(x: int, y: int, spacing: int):
+    OLED12864_I2C.vline(x, y, 7, 1)       # Left vertical line
+    OLED12864_I2C.vline(x + 4, y, 7, 1)   # Right vertical line
+    OLED12864_I2C.pixel(x + 2, y + 3, 1)  # Top left pixel
+    OLED12864_I2C.vline(x + 1, y + 1, 2, 1) # Left vertical line inside
+    OLED12864_I2C.vline(x + 3, y + 4, 2, 1) # Right vertical line inside
     return 5 + spacing  # width of character
 
 def period(x: int, y: int, spacing: int):
@@ -469,6 +477,12 @@ def draw_text(text: str, x: int, y: int, spacing: int):
             x += caps_p(x, y, spacing)
         elif char == 'A':
             x += caps_a(x, y, spacing)
+        elif char == 'O':
+            x += caps_o(x, y, spacing)
+        elif char == 'S':
+            x += caps_s(x, y, spacing)
+        elif char == 'N':
+            x += caps_n(x, y, spacing)
 #ACTUAL CODE IS BELOW, NORMAL FUNCTIONS ABOVE
 
 pins.set_pull(DigitalPin.P0, PinPullMode.PULL_UP)
@@ -481,14 +495,18 @@ pins.set_pull(DigitalPin.P2, PinPullMode.PULL_UP)
 x = 0  # starting x position
 y = 0  # starting y position
 spacing = 1  # space between letters
-answer1 = False
-draw_text("What is your budget?^1)  $500 and below^2)  $500 to $800^3)  $800 and above", x, y, spacing)
-while answer1 == False:
+answered = False
+answer1 = 0
+draw_text("What is your budget?^1.  $500 and below^2.  $500 to $800^3.  $800 and above", x, y, spacing)
+while answered == False:
     if pins.digital_read_pin(DigitalPin.P0) == 0:
-        answer1 = True
-        OLED12864_I2C.clear()
-        draw_text("Preferred operating system?^Android^iOS", x, y, spacing)
+        answered = True
+        answer1 = 1
     elif pins.digital_read_pin(DigitalPin.P1) == 0:
-        basic.pause(1000)
+        answered = True
+        answer1 = 2
     elif pins.digital_read_pin(DigitalPin.P2) == 0:
-        basic.pause(1000)
+        answered = True
+        answer1 = 3
+OLED12864_I2C.clear()
+draw_text("Preferred operating system?^1.  Android^2.  iOS^3.  No preference", x, y, spacing)
